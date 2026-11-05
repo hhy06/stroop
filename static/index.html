@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多语言 Stroop 颜色词测试</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="/static/js/main.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>多语言 Stroop 颜色词测试</h1>
+    <p class="sub">说出<strong>字的颜色</strong>，不要读词。反应越快越好，同时尽量别出错。</p>
+  </div>
+  <div class="topbar-right">
+    <button id="btn-overview" class="link-btn" type="button">研究者视图</button>
+    <span id="session-tag" class="tag"></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="screen-setup" class="screen card">
+    <h2>开始前</h2>
+    <p class="muted">本测试匿名，数据只保存在本机的数据库中，不会上传。整个流程约 4 分钟：说明 → 8 次练习 → 正式试次 → 译词测验 → 结果。</p>
+    <p class="muted">请先估计你对下列语言的<strong>熟悉程度</strong>（1 = 完全不懂，5 = 非常熟练）。请凭第一感觉填写，后面还会有一个小测。</p>
+    <div id="rating-list" class="rating-list"></div>
+    <label class="check"><input type="checkbox" id="check-colorvision"> 我色觉正常，且屏幕色彩显示正常</label>
+    <label class="check"><input type="checkbox" id="check-consent"> 我已理解任务，愿意参与本次匿名测试</label>
+    <div class="row">
+      <button id="btn-start" class="primary" type="button" disabled>开始测试</button>
+      <span id="setup-hint" class="muted"></span>
+    </div>
+  </section>
+
+  <section id="screen-instructions" class="screen card hidden">
+    <h2>任务说明</h2>
+    <p>屏幕中央会出现一个<strong>带颜色的词</strong>。请忽略这个词的意思，只判断<strong>它是用什么颜色写的</strong>。</p>
+    <p>例如 <span class="demo" style="color:#1565C0">红</span> 这个字虽然意思是「红」，但它是蓝色写的，正确答案是 <strong>蓝</strong>。</p>
+    <p>用键盘 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>（或 <kbd>D</kbd><kbd>F</kbd><kbd>J</kbd><kbd>K</kbd>）作答，也可以点屏幕下方对应颜色的按钮。映射会一直显示在底部。</p>
+    <div id="mapping-preview" class="mapping-preview"></div>
+    <p class="muted">请先做 8 次练习，练习数据不计入结果。正式试次中不会显示对错，请尽量又快又准。</p>
+    <button id="btn-practice" class="primary" type="button">开始练习</button>
+  </section>
+
+  <section id="screen-ready" class="screen card hidden">
+    <h2>练习完成</h2>
+    <p>接下来是正式试次，共 <strong id="formal-count">—</strong> 题，按语言分成 <strong id="formal-blocks">—</strong> 段，段间可以休息。</p>
+    <p class="muted">中途请不要切换窗口或标签页，失焦的试次会被标记作废。</p>
+    <button id="btn-formal" class="primary" type="button">开始正式测试</button>
+  </section>
+
+  <section id="screen-break" class="screen card hidden">
+    <h2>休息一下</h2>
+    <p>已完成 <strong id="break-progress">—</strong>。下一段会换成另一种语言，规则完全一样：只说字的颜色。</p>
+    <p class="muted">准备好后继续，休息时长不计入成绩。</p>
+    <button id="btn-continue" class="primary" type="button">继续</button>
+  </section>
+
+  <section id="screen-trial" class="screen trial-screen hidden">
+    <div class="progress"><div id="progress-fill" class="progress-fill"></div></div>
+    <div id="trial-stage" class="trial-stage">
+      <div id="fixation" class="fixation hidden">+</div>
+      <div id="stimulus" class="stimulus hidden"></div>
+      <div id="feedback" class="feedback hidden"></div>
+    </div>
+    <div id="response-bar" class="response-bar"></div>
+  </section>
+
+  <section id="screen-vocab" class="screen card hidden">
+    <h2>最后一个小测：这些词是什么意思？</h2>
+    <p class="muted">请选出每个词表示的颜色；不认识就选「不认识」。这一步用来核对前面的自评，共 <span id="vocab-total">—</span> 题。</p>
+    <div class="vocab-progress"><div id="vocab-fill" class="progress-fill"></div></div>
+    <div class="vocab-word"><span id="vocab-word">—</span><span id="vocab-lang" class="tag"></span></div>
+    <div id="vocab-options" class="vocab-options"></div>
+  </section>
+
+  <section id="screen-summary" class="screen card hidden">
+    <h2>你的结果</h2>
+    <p class="muted" id="summary-meta"></p>
+    <div id="summary-body"></div>
+    <div class="row">
+      <a class="button" href="/api/export.csv" download>导出全部试次 CSV</a>
+      <button id="btn-restart" class="link-btn" type="button">再测一次</button>
+    </div>
+  </section>
+
+  <section id="screen-overview" class="screen card hidden">
+    <h2>研究者视图</h2>
+    <p class="muted">按会话 × 语言列出自评熟练度、译词得分与干扰量（不一致 − 中性，单位 ms）。</p>
+    <div id="overview-body"></div>
+    <div class="row">
+      <button id="btn-overview-refresh" class="button" type="button">刷新</button>
+      <a class="button" href="/api/export.csv" download>导出全部试次 CSV</a>
+      <button id="btn-overview-back" class="link-btn" type="button">返回</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast hidden"></div>
+</body>
+</html>
